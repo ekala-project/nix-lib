@@ -36,7 +36,7 @@ This file evaluates to an attribute set containing two separate kinds of attribu
   Example: `lib.take` is an alias for `lib.lists.take`.
 
 Most files in this directory are definitions of sub-libraries, but there are a few others:
-- [`minver.nix`](minver.nix): A string of the minimum version of Nix that is required to evaluate Nixpkgs.
+- [`minfeatures.nix`](minfeatures.nix): A list of conditions for the used Nix version to match that are required to evaluate Nixpkgs.
 - [`tests`](tests): Tests, see [Running tests](#running-tests)
   - [`release.nix`](tests/release.nix): A derivation aggregating all tests
   - [`misc.nix`](tests/misc.nix): Evaluation unit tests for most sub-libraries
@@ -162,13 +162,15 @@ fileset/tests.sh
 - Format the commit messages in the following way:
 
   ```
-  (section): (init | add additional argument | refactor | etc)
+  lib.(section): (init | add additional argument | refactor | etc)
 
   (Motivation for change. Additional information.)
   ```
 
   Examples:
 
-  * getExe': check arguments
-  * fileset: Add an additional argument in the design docs
+  * lib.getExe': check arguments
+  * lib.fileset: Add an additional argument in the design docs
+
+    Closes #264537
 

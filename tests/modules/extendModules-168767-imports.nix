@@ -30,11 +30,14 @@ in
               default = { };
               inherit
                 (extendModules {
-                  modules = [{
-                    specialisation = mkOverride 0 { };
-                  }];
+                  modules = [
+                    {
+                      specialisation = mkOverride 0 { };
+                    }
+                  ];
                 })
-                type;
+                type
+                ;
             };
           }
         );
@@ -42,7 +45,6 @@ in
     }
 
     { config.sub.value = 1; }
-
 
   ];
 }

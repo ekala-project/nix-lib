@@ -64,6 +64,7 @@ let
       derivations = callLibs ./derivations.nix;
       meta = callLibs ./meta.nix;
       versions = callLibs ./versions.nix;
+      packageSets = callLibs ./package-sets.nix
 
       # module system
       modules = callLibs ./modules.nix;

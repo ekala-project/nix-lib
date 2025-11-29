@@ -256,8 +256,21 @@ rec {
     callPackageWith :: AttrSet -> ((AttrSet -> a) | Path) -> AttrSet -> a
     ```
   */
-  callPackageWith =
-    autoArgs: fn: args:
+  callPackageWith = callGenericWith "callPackageWith" makeOverridable;
+
+  /**
+    Very similar to callPackageWith, with the exception that it doesn't wrap the
+    package function in makeOverridable which adds `.override` and `.overrideDerivation`.
+    This is intended to be use when the calling function doesn't return a derivation.
+  */
+  callFromScopeWith = callGenericWith "callFromScopeWith" lib.id;
+
+
+  /**
+    Not intended to be used directly. Instead use callPackageWith or callFromScopeWith
+    dependening on whether you're importing packages or non-package expressions.
+  */
+  callGenericWith = funcName: continuation: autoArgs: fn: args:
     let
       f = if isFunction fn then fn else import fn;
       fargs = functionArgs f;
@@ -314,13 +327,13 @@ rec {
 
     in
     if missingArgs == { } then
-      makeOverridable f allArgs
+      continuation f allArgs
     # This needs to be an abort so it can't be caught with `builtins.tryEval`,
     # which is used by nix-env and ofborg to filter out packages that don't evaluate.
     # This way we're forced to fix such errors in Nixpkgs,
     # which is especially relevant with allowAliases = false
     else
-      abort "lib.customisation.callPackageWith: ${error}";
+      abort "${funcName}: ${error}";
 
   /**
     Like callPackage, but for a function that returns an attribute
@@ -619,6 +632,7 @@ rec {
       self = f self // {
         newScope = scope: newScope (self // scope);
         callPackage = self.newScope { };
+        callFromScope = callFromScopeWith self;
         overrideScope = g: makeScope newScope (extends g f);
         packages = f;
       };
@@ -730,6 +744,7 @@ rec {
       self = f self // {
         newScope = scope: newScope (spliced // scope);
         callPackage = newScope spliced; # == self.newScope {};
+        callFromScope = callFromScopeWith spliced;
         # N.B. the other stages of the package set spliced in are *not*
         # overridden.
         overrideScope =

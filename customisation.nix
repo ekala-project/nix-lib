@@ -209,7 +209,7 @@ rec {
     callPackageWith :: AttrSet -> ((AttrSet -> a) | Path) -> AttrSet -> a
     ```
   */
-  callPackageWith = callGenericWith "lib.customisation.callPackageWith" makeOverridable;
+  callPackageWith = callGenericWith "callPackageWith" makeOverridable;
 
 
   /**
@@ -217,11 +217,11 @@ rec {
     package function in makeOverridable which adds `.override` and `.overrideDerivation`.
     This is intended to be use when the calling function doesn't return a derivation.
   */
-  scopeImportWith = callGenericWith "lib.customisation.scopeImportWith" lib.id;
+  callFromScopeWith = callGenericWith "callFromScopeWith" lib.id;
 
 
   /**
-    Not intended to be used directly. Instead use callPackageWith or scopeImportWith
+    Not intended to be used directly. Instead use callPackageWith or callFromScopeWith
     dependening on whether you're importing packages or non-package expressions.
   */
   callGenericWith = funcName: continuation: autoArgs: fn: args:
@@ -458,7 +458,7 @@ rec {
     ```
     scope :: {
       callPackage :: ((AttrSet -> a) | Path) -> AttrSet -> a
-      scopeImport :: ((AttrSet -> a) | Path) -> AttrSet -> a
+      callFromScope :: ((AttrSet -> a) | Path) -> AttrSet -> a
       newScope = AttrSet -> scope
       overrideScope = (scope -> scope -> AttrSet) -> scope
       packages :: AttrSet -> AttrSet
@@ -557,7 +557,7 @@ rec {
   makeScope = newScope: f:
     let self = f self // {
           newScope = scope: newScope (self // scope);
-          scopeImport = scopeImportWith self;
+          callFromScope = callFromScopeWith self;
           callPackage = self.newScope {};
           overrideScope = g: makeScope newScope (extends g f);
           # Remove after 24.11 is released.
@@ -666,7 +666,7 @@ rec {
       spliced = extra spliced0 // spliced0 // keep self;
       self = f self // {
         newScope = scope: newScope (spliced // scope);
-        scopeImport = scopeImportWith spliced;
+        callFromScope = callFromScopeWith spliced;
         callPackage = newScope spliced; # == self.newScope {};
         # N.B. the other stages of the package set spliced in are *not*
         # overridden.

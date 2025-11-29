@@ -41,22 +41,14 @@ rec {
   # Type: Path -> Overlay
   mkAutoCalledPackageDir = baseDirectory:
     let
-      namesForShard = mkNamesForDirectory baseDirectory;
+      namesForDir = mkNamesForDirectory baseDirectory;
       # This is defined up here in order to allow reuse of the value (it's kind of expensive to compute)
       # if the overlay has to be applied multiple times
-      packageFiles = mergeAttrsList (mapAttrsToList namesForShard (readDir baseDirectory));
+      packageFiles = mergeAttrsList (mapAttrsToList namesForDir (readDir baseDirectory));
     in
-    # TODO: Consider optimising this using `builtins.deepSeq packageFiles`,
-      # which could free up the above thunks and reduce GC times.
-      # Currently this would be hard to measure until we have more packages
-      # and ideally https://github.com/NixOS/nix/pull/8895
     self: super:
-      {
-        # Used to verify call by-name usage
-        _internalCallByNamePackageFile = file: self.callPackage file { };
-      }
-      // mapAttrs
-        (name: value: self._internalCallByNamePackageFile value)
+      mapAttrs
+        (name: value: self.callPackage value { })
         packageFiles;
 }
 

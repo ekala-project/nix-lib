@@ -50,6 +50,29 @@ rec {
       mapAttrs
         (name: value: self.callPackage value { })
         packageFiles;
+
+  # This is similar to mkAutoCalledPackageDir, but expects the directories
+  # to be using the mkManyVariant paradigm.
+  # See: https://github.com/ekala-project/eeps/blob/auto-call-many-variants/eeps/0006-auto-call-many-variants.md
+  #
+  # Type: Path -> Overlay
+  mkAutoCalledManyVariantsDir = baseDirectory:
+    let
+      namesForDir = mkNamesForDirectory baseDirectory;
+      # This is defined up here in order to allow reuse of the value (it's kind of expensive to compute)
+      # if the overlay has to be applied multiple times
+      packageFiles = mergeAttrsList (mapAttrsToList namesForDir (readDir baseDirectory));
+    in
+    self: super:
+      mapAttrs
+        (name: value:
+          let
+            variants = self.callFromScope value { };
+          in
+          self.callPackage variants { }
+        )
+        packageFiles;
+
 }
 
 

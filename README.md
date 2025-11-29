@@ -10,9 +10,10 @@ Noteable exceptions from `nixpkgs/lib`:
 - `lib.trivial` no longer includes nixpkgs release related information
 
 Noteable additions to `nixpkgs/lib`:
-- `callFromScope`: like `callPackage` but doesn't add `.override` or `.overrideDerivation`
+- `lib.customisations.callFromScope`: like `callPackage` but doesn't add `.override` or `.overrideDerivation`
   - Meant to be used for functions, shellhooks, and package scopes
 - Added `packageSets.mkAutoCalledPackageDir` lib, which enables the easy creation package sets from a directory
+- Added `packageSets.mkAutoCalledManyVariantsDir` lib, which enables the easy creation of manyVariant package sets from a directory
 
 
 # Nixpkgs lib (original readme)

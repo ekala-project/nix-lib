@@ -7,9 +7,12 @@ Noteable exceptions from `nixpkgs/lib`:
 - `systems/` was removed as it included information about system platforms which are not relevant to nix utilities.
 - `maintainers` and `teams` were removed, as that's related to package maintainership
 - Contributing instructions no longer include usage of "lib.", as the repo now fixates on these functions.
-- Added `packageSets.mkAutoCalledPackageDir` lib, which enables the easy creation
-package sets from a directory
 - `lib.trivial` no longer includes nixpkgs release related information
+
+Noteable additions to `nixpkgs/lib`:
+- `callFromScope`: like `callPackage` but doesn't add `.override` or `.overrideDerivation`
+  - Meant to be used for functions, shellhooks, and package scopes
+- Added `packageSets.mkAutoCalledPackageDir` lib, which enables the easy creation package sets from a directory
 
 
 # Nixpkgs lib (original readme)

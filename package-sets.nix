@@ -6,25 +6,32 @@ let
     ;
 
   inherit (lib.attrsets)
+    filterAttrs
     mapAttrs
-    mapAttrsToList
-    mergeAttrsList
     ;
 
 in
 rec {
-  # Package paths for a directory, this is intened to be used with
-  # builtins.readDir, in which the contents can use this function to map over
-  # the results
-  # Type: Path -> _ -> String -> AttrsOf Path
-  mkNamesForDirectory = baseDirectory: _: type:
-    if type != "directory" then
-    # Ignore files, and only assume that directories will be imported by default
-      { }
-    else
-      mapAttrs
-        (name: _: baseDirectory + "/${name}")
-        (readDir (baseDirectory));
+  # Package paths for a directory
+  #
+  # Example:
+  #   pkgs/
+  #     default.nix
+  #     openssl/
+  #       default.nix
+  #     curl/
+  #       default.nix
+  #
+  # directoryNames ./pkgs -> { openssl = ./pkgs/openssl; curl = ./pkgs/curl; }
+  #
+  # Type: Path -> AttrSet Path
+  directoryNames = baseDirectory:
+    let
+      dirs = filterAttrs (_: v: v == "directory") (readDir baseDirectory);
+    in
+    mapAttrs
+      (name: _: baseDirectory + "/${name}")
+      dirs;
 
 
   # This is expected to be passed a directory which contains subdirectories which
@@ -41,15 +48,12 @@ rec {
   # Type: Path -> Overlay
   mkAutoCalledPackageDir = baseDirectory:
     let
-      namesForDir = mkNamesForDirectory baseDirectory;
-      # This is defined up here in order to allow reuse of the value (it's kind of expensive to compute)
-      # if the overlay has to be applied multiple times
-      packageFiles = mergeAttrsList (mapAttrsToList namesForDir (readDir baseDirectory));
+      namesForDir = directoryNames baseDirectory;
     in
-    self: super:
+    self: _super:
       mapAttrs
-        (name: value: self.callPackage value { })
-        packageFiles;
+        (_: value: self.callPackage value { })
+        namesForDir;
 
   # This is similar to mkAutoCalledPackageDir, but expects the directories
   # to be using the mkManyVariant paradigm.
@@ -58,20 +62,17 @@ rec {
   # Type: Path -> Overlay
   mkAutoCalledManyVariantsDir = baseDirectory:
     let
-      namesForDir = mkNamesForDirectory baseDirectory;
-      # This is defined up here in order to allow reuse of the value (it's kind of expensive to compute)
-      # if the overlay has to be applied multiple times
-      packageFiles = mergeAttrsList (mapAttrsToList namesForDir (readDir baseDirectory));
+      namesForDir = directoryNames baseDirectory;
     in
-    self: super:
+    self: _super:
       mapAttrs
-        (name: value:
+        (_name: value:
           let
             variants = self.callFromScope value { };
           in
           self.callPackage variants { }
         )
-        packageFiles;
+        namesForDir;
 
 }
 

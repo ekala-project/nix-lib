@@ -470,8 +470,11 @@ let
 
   # repoRevToNameFull : (URL | Path | String) -> (String | Integer | null) -> (String | null) -> String
   #
-  # See `repoRevToName` below.
-  repoRevToNameFull =
+  # Produce derivation.name attribute for a given repository URL/path/name and (optionally) its revision/version tag.
+  #
+  # This is used by fetch(zip|git|FromGitHub|hg|svn|etc) to generate discoverable
+  # /nix/store paths.
+  repoRevToName =
     repo_: rev_: suffix_:
     let
       repo = urlToName repo_;
@@ -479,35 +482,6 @@ let
       suffix = if suffix_ != null then "-${suffix_}" else "";
     in
     "${repo}${rev}${suffix}-source";
-
-  # repoRevToName : String -> (URL | Path | String) -> (String | Integer | null) -> String -> String
-  #
-  # Produce derivation.name attribute for a given repository URL/path/name and (optionally) its revision/version tag.
-  #
-  # This is used by fetch(zip|git|FromGitHub|hg|svn|etc) to generate discoverable
-  # /nix/store paths.
-  #
-  # This uses a different implementation depending on the `pretty` argument:
-  #  "source" -> name everything as "source"
-  #  "versioned" -> name everything as "${repo}-${rev}-source"
-  #  "full" -> name everything as "${repo}-${rev}-${fetcher}-source"
-  repoRevToName =
-    kind:
-    # match on `kind` first to minimize the thunk
-    if kind == "source" then
-      (
-        repo: rev: suffix:
-        "source"
-      )
-    else if kind == "versioned" then
-      (
-        repo: rev: suffix:
-        repoRevToNameFull repo rev null
-      )
-    else if kind == "full" then
-      repoRevToNameFull
-    else
-      throw "repoRevToName: invalid kind";
 
 in
 {

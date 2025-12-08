@@ -250,6 +250,7 @@ let
         imap1
         filter
         ifilter0
+        concatAttrValues
         concatMap
         flatten
         remove

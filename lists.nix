@@ -11,7 +11,7 @@ let
     warn
     pipe
     ;
-  inherit (lib.attrsets) mapAttrs attrNames;
+  inherit (lib.attrsets) mapAttrs attrNames attrValues;
   inherit (lib) max;
 in
 rec {

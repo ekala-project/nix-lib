@@ -660,7 +660,11 @@ rec {
 
     :::
   */
-  filterAttrs = pred: set: removeAttrs set (filter (name: !pred name set.${name}) (attrNames set));
+  filterAttrs =
+    if builtins ? filterAttrs then
+      builtins.filterAttrs
+    else
+      pred: set: removeAttrs set (filter (name: !pred name set.${name}) (attrNames set));
 
   /**
     Filter an attribute set recursively by removing all attributes for

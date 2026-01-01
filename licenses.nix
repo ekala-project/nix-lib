@@ -4,15 +4,15 @@ let
 
   mkLicense =
     lname:
-    { shortName ? lname
-    , # Most of our licenses are Free, explicitly declare unfree additions as such!
-      free ? true
-    , deprecated ? false
-    , spdxId ? null
-    , url ? null
-    , fullName ? null
-    , redistributable ? free
-    ,
+    {
+      shortName ? lname,
+      # Most of our licenses are Free, explicitly declare unfree additions as such!
+      free ? true,
+      deprecated ? false,
+      spdxId ? null,
+      url ? null,
+      fullName ? null,
+      redistributable ? free,
     }@attrs:
     {
       inherit
@@ -62,6 +62,11 @@ lib.mapAttrs mkLicense (
       fullName = "Activision EULA";
       url = "https://www.doomworld.com/eternity/activision_eula.txt";
       free = false;
+    };
+
+    adobeDisplayPostScript = {
+      spdxId = "Adobe-Display-PostScript";
+      fullName = "Adobe Display PostScript License";
     };
 
     adobeUtopia = {
@@ -170,6 +175,11 @@ lib.mapAttrs mkLicense (
     baekmuk = {
       spdxId = "Baekmuk";
       fullName = "Baekmuk License";
+    };
+
+    bitstreamCharter = {
+      spdxId = "Bitstream-Charter";
+      fullName = "Bitstream Charter Font License";
     };
 
     bitstreamVera = {
@@ -496,6 +506,11 @@ lib.mapAttrs mkLicense (
       fullName = "curl License";
     };
 
+    dec3Clause = {
+      spdxId = "DEC-3-Clause";
+      fullName = "DEC 3-Clause License";
+    };
+
     doc = {
       spdxId = "DOC";
       fullName = "DOC License";
@@ -615,11 +630,6 @@ lib.mapAttrs mkLicense (
       fullName = "Unspecified free software license";
     };
 
-    freeimage = {
-      spdxId = "FreeImage";
-      fullName = "FreeImage Public License v1.0";
-    };
-
     fsl11Mit = {
       fullName = "Functional Source License, Version 1.1, MIT Future License";
       spdxId = "FSL-1.1-MIT";
@@ -663,6 +673,11 @@ lib.mapAttrs mkLicense (
     gfsl = {
       fullName = "GUST Font Source License";
       url = "https://www.gust.org.pl/projects/e-foundry/licenses/GUST-FONT-SOURCE-LICENSE.txt";
+    };
+
+    gnuplot = {
+      spdxId = "gnuplot";
+      fullName = "gnuplot License";
     };
 
     gpl1Only = {
@@ -722,6 +737,11 @@ lib.mapAttrs mkLicense (
       spdxId = "HPND-sell-variant";
     };
 
+    hpndSellVariantMitDisclaimerXserver = {
+      spdxId = "HPND-sell-MIT-disclaimer-xserver";
+      fullName = "Historical Permission Notice and Disclaimer - sell xserver variant with MIT disclaimer";
+    };
+
     hpndDec = {
       fullName = "Historical Permission Notice and Disclaimer - DEC variant";
       spdxId = "HPND-DEC";
@@ -740,6 +760,11 @@ lib.mapAttrs mkLicense (
     hpndUc = {
       spdxId = "HPND-UC";
       fullName = "Historical Permission Notice and Disclaimer - University of California variant";
+    };
+
+    hyphenBulgarian = {
+      fullName = "hyphen-bulgarian License";
+      spdxId = "hyphen-bulgarian";
     };
 
     # Intel's license, seems free
@@ -788,6 +813,12 @@ lib.mapAttrs mkLicense (
     inria-zelus = {
       fullName = "INRIA Non-Commercial License Agreement for the Zélus compiler";
       url = "https://github.com/INRIA/zelus/raw/829f2b97cba93b0543a9ca0272269e6b8fdad356/LICENSE";
+      free = false;
+    };
+
+    intel-eula = {
+      fullName = "Intel End User License Agreement for Developer Tools";
+      url = "https://software.intel.com/sites/manageability/AMT_Implementation_and_Reference_Guide/WordDocuments/intelamtsdklicense.htm";
       free = false;
     };
 
@@ -982,6 +1013,11 @@ lib.mapAttrs mkLicense (
       fullName = "CMU License";
     };
 
+    mit-enna = {
+      spdxId = "MIT-enna";
+      fullName = "enna License";
+    };
+
     mit-feh = {
       spdxId = "MIT-feh";
       fullName = "feh License";
@@ -1090,6 +1126,13 @@ lib.mapAttrs mkLicense (
     nposl3 = {
       spdxId = "NPOSL-3.0";
       fullName = "Non-Profit Open Software License 3.0";
+    };
+
+    # NTP is basically HPND, but spdx and the OSI recognize it
+    # hpnd says "and without fee", ntp "with or without fee"
+    ntp = {
+      spdxId = "NTP";
+      fullName = "NTP License";
     };
 
     nvidiaCuda = {
@@ -1499,6 +1542,11 @@ lib.mapAttrs mkLicense (
       fullName = "X11 License";
     };
 
+    x11NoPermitPersons = {
+      spdxId = "X11-no-permit-persons";
+      fullName = "X11 no permit persons clause";
+    };
+
     xerox = {
       spdxId = "Xerox";
       fullName = "Xerox License";
@@ -1535,7 +1583,7 @@ lib.mapAttrs mkLicense (
     };
 
   }
-    // {
+  // {
     # TODO: remove legacy aliases
     apsl10 = {
       # deprecated for consistency with `apple-psl20`; use `apple-psl10`

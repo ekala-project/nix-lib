@@ -238,6 +238,7 @@ let
         intersectAttrs
         removeAttrs
         ;
+
       inherit (self.lists)
         singleton
         forEach
@@ -250,7 +251,6 @@ let
         imap1
         filter
         ifilter0
-        concatAttrValues
         concatMap
         flatten
         remove
@@ -298,7 +298,9 @@ let
         elem
         elemAt
         isList
+        concatAttrValues
         ;
+
       inherit (self.strings)
         concatStrings
         concatMapStrings

@@ -798,17 +798,16 @@ rec {
     :::
   */
   hasPrefix =
-    pref: str:
-    # Before 23.05, paths would be copied to the store before converting them
-    # to strings and comparing. This was surprising and confusing.
-    warnIf (isPath pref)
-      ''
+    pref:
+    let
+      lenPrefix = stringLength pref;
+    in
+    if isPath pref then
+      throw ''
         lib.strings.hasPrefix: The first argument (${toString pref}) is a path value, but only strings are supported.
-            There is almost certainly a bug in the calling code, since this function always returns `false` in such a case.
-            This function also copies the path to the Nix store, which may not be what you want.
-            This behavior is deprecated and will throw an error in the future.
             You might want to use `lib.path.hasPrefix` instead, which correctly supports paths.''
-      (substring 0 (stringLength pref) str == pref);
+    else
+      str: substring 0 lenPrefix str == pref;
 
   /**
     Determine whether a string has given suffix.
@@ -841,20 +840,21 @@ rec {
     :::
   */
   hasSuffix =
-    suffix: content:
+    suffix:
     let
-      lenContent = stringLength content;
       lenSuffix = stringLength suffix;
     in
-    # Before 23.05, paths would be copied to the store before converting them
-      # to strings and comparing. This was surprising and confusing.
-    warnIf (isPath suffix)
-      ''
+    if isPath suffix then
+      throw ''
         lib.strings.hasSuffix: The first argument (${toString suffix}) is a path value, but only strings are supported.
-            There is almost certainly a bug in the calling code, since this function always returns `false` in such a case.
-            This function also copies the path to the Nix store, which may not be what you want.
-            This behavior is deprecated and will throw an error in the future.''
-      (lenContent >= lenSuffix && substring (lenContent - lenSuffix) lenContent content == suffix);
+        There is almost certainly a bug in the calling code, since this function always returns `false` in such a case.
+        This function also copies the path to the Nix store, which may not be what you want.''
+    else
+      content:
+      let
+        lenContent = stringLength content;
+      in
+      lenContent >= lenSuffix && substring (lenContent - lenSuffix) lenContent content == suffix;
 
   /**
     Determine whether a string contains the given infix
@@ -891,16 +891,17 @@ rec {
     :::
   */
   hasInfix =
-    infix: content:
-    # Before 23.05, paths would be copied to the store before converting them
-    # to strings and comparing. This was surprising and confusing.
-    warnIf (isPath infix)
-      ''
+    infix:
+    let
+      escapedInfix = escapeRegex infix;
+    in
+    if isPath infix then
+      throw ''
         lib.strings.hasInfix: The first argument (${toString infix}) is a path value, but only strings are supported.
             There is almost certainly a bug in the calling code, since this function always returns `false` in such a case.
-            This function also copies the path to the Nix store, which may not be what you want.
-            This behavior is deprecated and will throw an error in the future.''
-      (builtins.match ".*${escapeRegex infix}.*" "${content}" != null);
+            This function also copies the path to the Nix store, which may not be what you want.''
+    else
+      content: builtins.match ".*${escapedInfix}.*" "${content}" != null;
 
   /**
     Convert a string `s` to a list of characters (i.e. singleton strings).
@@ -1562,7 +1563,7 @@ rec {
       (
         let
           firstChar = substring 0 1 str;
-          rest = substring 1 (stringLength str) str;
+          rest = substring 1 (-1) str;
         in
         addContextFrom str (toUpper firstChar + toLower rest)
       );
@@ -1715,13 +1716,11 @@ rec {
     :::
   */
   splitString =
-    sep: s:
+    sep:
     let
-      splits = builtins.filter builtins.isString (
-        builtins.split (escapeRegex (toString sep)) (toString s)
-      );
+      escapedSep = escapeRegex (toString sep);
     in
-    map (addContextFrom s) splits;
+    s: map (addContextFrom s) (filter isString (split escapedSep (toString s)));
 
   /**
     Splits a string into substrings based on a predicate that examines adjacent characters.

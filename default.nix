@@ -432,6 +432,7 @@ let
         cleanSource
         sourceByRegex
         sourceFilesBySuffices
+        sourceByGlobs
         commitIdFromGitRepo
         cleanSourceWith
         pathHasContext

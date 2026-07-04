@@ -1,6 +1,6 @@
 { lib }:
 let
-  inherit (lib) optionalAttrs;
+  inherit (lib) all any concatMapStringsSep elem optionalAttrs;
 
   mkLicense =
     lname:
@@ -21,6 +21,7 @@ let
         deprecated
         redistributable
         ;
+      licenseType = "simple";
     }
     // optionalAttrs (attrs ? spdxId) {
       inherit spdxId;
@@ -32,6 +33,66 @@ let
     // optionalAttrs (attrs ? fullName) {
       inherit fullName;
     };
+
+  handleComplexProperty =
+    evaluateSubProperty: AND: OR: license:
+    if license.licenseType == "compound" then
+      if license.operator == "OR" then
+        OR evaluateSubProperty license.licenses
+      else if license.operator == "AND" then
+        AND evaluateSubProperty license.licenses
+      else
+        throw "Unknown license operator"
+    else if license.licenseType == "exception" then
+      evaluateSubProperty license.license && evaluateSubProperty license.exception
+    else if license.licenseType == "plus" then
+      evaluateSubProperty license.license
+    else
+      throw "Unknown license type or legacy license";
+
+  evaluateProperty =
+    predicate: permissive:
+    let
+      OR = if permissive then any else all;
+      AND = if permissive then all else any;
+      evaluateComplexProperty = handleComplexProperty (evaluateProperty predicate permissive) AND OR;
+    in
+    license:
+    if license.licenseType == "simple" then predicate license else evaluateComplexProperty license;
+
+  evaluateNamedProperty =
+    name: permissive:
+    let
+      OR = if permissive then any else all;
+      AND = if permissive then all else any;
+      evaluateComplexProperty = handleComplexProperty (evaluateNamedProperty name permissive) AND OR;
+    in
+    license:
+    if license.licenseType == "simple" then license.${name} else evaluateComplexProperty license;
+
+  isFree = evaluateNamedProperty "free" true;
+
+  isRedistributable = evaluateNamedProperty "redistributable" true;
+
+  containsLicenses = licenses: evaluateProperty (x: elem x licenses) false;
+
+  toSPDX =
+    license:
+    let
+      mkBracket =
+        x:
+        if x.licenseType == "compound" || x.licenseType == "exception" then "(${toSPDX x})" else toSPDX x;
+    in
+    if license.licenseType == "simple" then
+      license.spdxId or "LicenseRef-nixos-${license.shortName}"
+    else if license.licenseType == "compound" then
+      concatMapStringsSep " ${license.operator} " (x: mkBracket x) license.licenses
+    else if license.licenseType == "exception" then
+      "${mkBracket license.license} ${license.operator} ${mkBracket license.exception}"
+    else if license.licenseType == "plus" then
+      "${mkBracket license.license}${license.operator}"
+    else
+      throw "Unknown license type";
 
 in
 lib.mapAttrs mkLicense (
@@ -1624,3 +1685,37 @@ lib.mapAttrs mkLicense (
     };
   }
 )
+// {
+  inherit
+    evaluateProperty
+    evaluateNamedProperty
+    isFree
+    isRedistributable
+    containsLicenses
+    toSPDX
+    ;
+
+  OR = licenses: {
+    licenseType = "compound";
+    operator = "OR";
+    inherit licenses;
+  };
+
+  AND = licenses: {
+    licenseType = "compound";
+    operator = "AND";
+    inherit licenses;
+  };
+
+  WITH = license: exception: {
+    licenseType = "exception";
+    operator = "WITH";
+    inherit license exception;
+  };
+
+  PLUS = license: {
+    licenseType = "plus";
+    operator = "+";
+    inherit license;
+  };
+}

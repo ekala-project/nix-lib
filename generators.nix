@@ -23,9 +23,12 @@
 let
   inherit (lib)
     addErrorContext
+    any
     assertMsg
     attrNames
+    attrValues
     concatLists
+    concatMap
     concatMapStringsSep
     concatStrings
     concatStringsSep
@@ -35,6 +38,7 @@ let
     filter
     flatten
     foldl
+    genAttrs
     functionArgs# Note: not the builtin; considers `__functor` in attrsets.
     gvariant
     hasInfix
@@ -379,55 +383,67 @@ rec {
       See: https://git-scm.com/docs/git-config#_variables for possible values.
   */
   toGitINI =
-    attrs:
     let
       mkSectionName =
+        let
+          containsQuote = hasInfix ''"'';
+        in
         name:
         let
-          containsQuote = hasInfix ''"'' name;
           sections = splitString "." name;
-          section = head sections;
-          subsections = tail sections;
-          subsection = concatStringsSep "." subsections;
         in
-        if containsQuote || subsections == [ ] then name else ''${section} "${subsection}"'';
+        if containsQuote name || length sections == 1 then
+          name
+        else
+          ''${head sections} "${concatStringsSep "." (tail sections)}"'';
 
       mkValueString =
-        v:
         let
-          escapedV = ''"${replaceStrings [ "\n" "	" ''"'' "\\" ] [ "\\n" "\\t" ''\"'' "\\\\" ] v}"'';
+          escape = replaceStrings [ "\n" "	" ''"'' "\\" ] [ "\\n" "\\t" ''\"'' "\\\\" ];
         in
-        mkValueStringDefault { } (if isString v then escapedV else v);
+        v: mkValueStringDefault { } (if isString v then ''"${escape v}"'' else v);
 
       # generation for multiple ini values
       mkKeyValue =
-        k: v:
         let
-          mkKeyValue = mkKeyValueDefault { inherit mkValueString; } " = " k;
+          mkKeyValue = mkKeyValueDefault { inherit mkValueString; } " = ";
+          attrToString = k: v: "\t" + mkKeyValue k v;
         in
-        concatStringsSep "\n" (map (kv: "\t" + mkKeyValue kv) (toList v));
+        k: v: if isList v then concatStringsSep "\n" (map (attrToString k) v) else attrToString k v;
 
       # converts { a.b.c = 5; } to { "a.b".c = 5; } for toINI
       gitFlattenAttrs =
         let
+          isNonDrvAttrs = value: isAttrs value && !isDerivation value;
           recurse =
             path: value:
-            if isAttrs value && !isDerivation value then
-              mapAttrsToList (name: value: recurse ([ name ] ++ path) value) value
+            if isNonDrvAttrs value then
+              concatMap (name: recurse ([ name ] ++ path) value.${name}) (attrNames value)
             else if length path > 1 then
-              {
-                ${concatStringsSep "." (reverseList (tail path))}.${head path} = value;
-              }
+              [
+                {
+                  ${concatStringsSep "." (reverseList (tail path))}.${head path} = value;
+                }
+              ]
             else
-              {
-                ${head path} = value;
-              };
+              [
+                {
+                  ${head path} = value;
+                }
+              ];
         in
-        attrs: foldl recursiveUpdate { } (flatten (recurse [ ] attrs));
+        attrs:
+        let
+          namesToRewrite = filter (
+            name: isAttrs attrs.${name} && any isNonDrvAttrs (attrValues attrs.${name})
+          ) (attrNames attrs);
+          attrsToRewrite = genAttrs namesToRewrite (name: attrs.${name});
+        in
+        removeAttrs attrs namesToRewrite // foldl recursiveUpdate { } (recurse [ ] attrsToRewrite);
 
       toINI_ = toINI { inherit mkKeyValue mkSectionName; };
     in
-    toINI_ (gitFlattenAttrs attrs);
+    attrs: toINI_ (gitFlattenAttrs attrs);
 
   /**
     mkKeyValueDefault wrapper that handles dconf INI quirks.

@@ -467,6 +467,7 @@ let
         mkVMOverride
         mkFixStrictness
         mkOrder
+        mapDefinitionValue
         mkBefore
         mkAfter
         mkAliasDefinitions

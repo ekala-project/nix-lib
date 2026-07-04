@@ -14,16 +14,18 @@ let
     sanitizeDerivationName
     ;
   inherit (lib.lists)
-    filter
-    foldr
-    foldl'
+    concatLists
     concatMap
     elemAt
+    filter
+    foldl
+    foldl'
+    foldr
     all
     partition
     groupBy
+    reverseList
     take
-    foldl
     ;
 in
 
@@ -371,7 +373,11 @@ rec {
 
     :::
   */
-  concatMapAttrs = f: v: foldl' mergeAttrs { } (attrValues (mapAttrs f v));
+  concatMapAttrs =
+    f: v:
+    listToAttrs (
+      concatLists (reverseList (mapAttrsToList (name: value: attrsToList (f name value)) v))
+    );
 
   /**
     Update or set specific paths of an attribute set.

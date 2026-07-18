@@ -100,6 +100,9 @@ let
       # network
       network = callLibs ./network;
 
+      # fleet service contracts
+      fleet = callLibs ./fleet;
+
       # TODO: For consistency, all builtins should also be available from a sub-library;
       # these are the only ones that are currently not
       inherit (builtins)

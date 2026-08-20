@@ -1,6 +1,6 @@
 { lib }:
 let
-  inherit (lib) all any concatMapStringsSep elem optionalAttrs;
+  inherit (lib) optionalAttrs;
 
   mkLicense =
     lname:
@@ -33,66 +33,6 @@ let
     // optionalAttrs (attrs ? fullName) {
       inherit fullName;
     };
-
-  handleComplexProperty =
-    evaluateSubProperty: AND: OR: license:
-    if license.licenseType == "compound" then
-      if license.operator == "OR" then
-        OR evaluateSubProperty license.licenses
-      else if license.operator == "AND" then
-        AND evaluateSubProperty license.licenses
-      else
-        throw "Unknown license operator"
-    else if license.licenseType == "exception" then
-      evaluateSubProperty license.license && evaluateSubProperty license.exception
-    else if license.licenseType == "plus" then
-      evaluateSubProperty license.license
-    else
-      throw "Unknown license type or legacy license";
-
-  evaluateProperty =
-    predicate: permissive:
-    let
-      OR = if permissive then any else all;
-      AND = if permissive then all else any;
-      evaluateComplexProperty = handleComplexProperty (evaluateProperty predicate permissive) AND OR;
-    in
-    license:
-    if license.licenseType == "simple" then predicate license else evaluateComplexProperty license;
-
-  evaluateNamedProperty =
-    name: permissive:
-    let
-      OR = if permissive then any else all;
-      AND = if permissive then all else any;
-      evaluateComplexProperty = handleComplexProperty (evaluateNamedProperty name permissive) AND OR;
-    in
-    license:
-    if license.licenseType == "simple" then license.${name} else evaluateComplexProperty license;
-
-  isFree = evaluateNamedProperty "free" true;
-
-  isRedistributable = evaluateNamedProperty "redistributable" true;
-
-  containsLicenses = licenses: evaluateProperty (x: elem x licenses) false;
-
-  toSPDX =
-    license:
-    let
-      mkBracket =
-        x:
-        if x.licenseType == "compound" || x.licenseType == "exception" then "(${toSPDX x})" else toSPDX x;
-    in
-    if license.licenseType == "simple" then
-      license.spdxId or "LicenseRef-nixos-${license.shortName}"
-    else if license.licenseType == "compound" then
-      concatMapStringsSep " ${license.operator} " (x: mkBracket x) license.licenses
-    else if license.licenseType == "exception" then
-      "${mkBracket license.license} ${license.operator} ${mkBracket license.exception}"
-    else if license.licenseType == "plus" then
-      "${mkBracket license.license}${license.operator}"
-    else
-      throw "Unknown license type";
 
 in
 lib.mapAttrs mkLicense (
@@ -264,8 +204,8 @@ lib.mapAttrs mkLicense (
     };
 
     bola11 = {
-      url = "https://blitiri.com.ar/p/bola/";
-      fullName = "Buena Onda License Agreement 1.1";
+      spdxId = "BOLA-1.1";
+      fullName = "Buena Onda License Agreement v1.1";
     };
 
     boost = {
@@ -323,6 +263,11 @@ lib.mapAttrs mkLicense (
       fullName = "Lawrence Berkeley National Labs BSD variant license";
     };
 
+    bsd3Modification = {
+      spdxId = "BSD-3-Clause-Modification";
+      fullName = "BSD 3-Clause Modification";
+    };
+
     bsd3ClauseTso = {
       spdxId = "BSD-3-Clause-Tso";
       fullName = "BSD 3-Clause Tso variant";
@@ -365,6 +310,11 @@ lib.mapAttrs mkLicense (
       redistributable = true;
     };
 
+    bzip2 = {
+      spdxId = "bzip2-1.0.6";
+      fullName = "bzip2 and libbzip2 License v1.0.6";
+    };
+
     cal10 = {
       spdxId = "CAL-1.0";
       fullName = "Cryptographic Autonomy License version 1.0 (CAL-1.0)";
@@ -376,8 +326,8 @@ lib.mapAttrs mkLicense (
     };
 
     capec = {
-      fullName = "Common Attack Pattern Enumeration and Classification";
-      url = "https://capec.mitre.org/about/termsofuse.html";
+      fullName = "Common Attack Pattern Enumeration and Classification License";
+      spdxId = "CAPEC-tou";
     };
 
     clArtistic = {
@@ -525,6 +475,11 @@ lib.mapAttrs mkLicense (
       fullName = "CeCILL-C Free Software License Agreement";
     };
 
+    cfitsio = {
+      spdxId = "CFITSIO";
+      fullName = "CFITSIO License";
+    };
+
     classpathException20 = {
       spdxId = "Classpath-exception-2.0";
       fullName = "Classpath exception 2.0";
@@ -577,6 +532,11 @@ lib.mapAttrs mkLicense (
       fullName = "DOC License";
     };
 
+    docBookDtd = {
+      spdxId = "DocBook-DTD";
+      fullName = "DocBook DTD License";
+    };
+
     drl10 = {
       spdxId = "DRL-1.0";
       fullName = "Detection Rule License 1.0";
@@ -613,6 +573,13 @@ lib.mapAttrs mkLicense (
       spdxId = "Elastic-2.0";
       fullName = "Elastic License 2.0";
       free = false;
+    };
+
+    enpl = {
+      fullName = "Emmi AI Non-Production License";
+      url = "https://github.com/Emmi-AI/noether/blob/main/LICENSE.txt";
+      free = false;
+      redistributable = true;
     };
 
     epl10 = {
@@ -803,6 +770,11 @@ lib.mapAttrs mkLicense (
       fullName = "Historical Permission Notice and Disclaimer - sell xserver variant with MIT disclaimer";
     };
 
+    hpndSellVariantSafetyClause = {
+      fullName = "HPND - sell variant with safety critical systems clause";
+      spdxId = "HPND-sell-variant-critical-systems";
+    };
+
     hpndDec = {
       fullName = "Historical Permission Notice and Disclaimer - DEC variant";
       spdxId = "HPND-DEC";
@@ -901,6 +873,12 @@ lib.mapAttrs mkLicense (
     isc = {
       spdxId = "ISC";
       fullName = "ISC License";
+    };
+
+    json = {
+      spdxId = "JSON";
+      fullName = "JSON License";
+      free = false;
     };
 
     databricks = {
@@ -1019,6 +997,11 @@ lib.mapAttrs mkLicense (
       fullName = "libtiff License";
     };
 
+    liliq-p-11 = {
+      spdxId = "LiLiQ-P-1.1";
+      fullName = "Licence Libre du Québec – Permissive version 1.1";
+    };
+
     llgpl21 = {
       fullName = "Lisp LGPL; GNU Lesser General Public License version 2.1 with Franz Inc. preamble for clarification of LGPL terms in context of Lisp";
       url = "https://opensource.franz.com/preamble.html";
@@ -1105,6 +1088,11 @@ lib.mapAttrs mkLicense (
       fullName = "MIT Open Group variant";
     };
 
+    mpich2 = {
+      spdxId = "mpich2";
+      fullName = "mpich2 License";
+    };
+
     mpl10 = {
       spdxId = "MPL-1.0";
       fullName = "Mozilla Public License 1.0";
@@ -1167,6 +1155,12 @@ lib.mapAttrs mkLicense (
       fullName = "Netdata Cloud UI License v1.0";
       free = false;
       redistributable = true; # Only if used in Netdata products.
+    };
+
+    netboxLimitedUse = {
+      fullName = "NetBox Limited Use License 1.0";
+      free = false;
+      url = "https://github.com/netboxlabs/netbox-branching/blob/8465b9aee69ded23930cfe1a522695bfb8955a5a/LICENSE.md";
     };
 
     ngpl = {
@@ -1274,8 +1268,8 @@ lib.mapAttrs mkLicense (
     };
 
     paratype = {
-      fullName = "ParaType Free Font Licensing Agreement";
-      url = "https://web.archive.org/web/20161209023955/http://www.paratype.ru/public/pt_openlicense_eng.asp";
+      spdxId = "ParaType-Free-Font-1.3";
+      fullName = "ParaType Free Font Licensing Agreement v1.3";
     };
 
     parity70 = {
@@ -1329,6 +1323,17 @@ lib.mapAttrs mkLicense (
       fullName = "Qwt exception 1.0";
     };
 
+    reticulum = {
+      # The Reticulum License restricts certain fields of use, notably systems
+      # intended to harm human beings and AI/ML training datasets. Such usage
+      # restrictions are incompatible with the Open Source Definition
+      # (https://opensource.org/osd), in particular "No Discrimination Against
+      # Fields of Endeavor".
+      free = false;
+      fullName = "Reticulum License";
+      url = "https://reticulum.network/license";
+    };
+
     ruby = {
       spdxId = "Ruby";
       fullName = "Ruby License";
@@ -1354,7 +1359,8 @@ lib.mapAttrs mkLicense (
     # Gentoo seems to treat it as a license:
     # https://gitweb.gentoo.org/repo/gentoo.git/tree/licenses/SGMLUG?id=7d999af4a47bf55e53e54713d98d145f935935c1
     sgmlug = {
-      fullName = "SGML UG SGML Parser Materials license";
+      spdxId = "SGMLUG-PM";
+      fullName = "SGMLUG Parser Materials License";
     };
 
     sissl11 = {
@@ -1451,11 +1457,8 @@ lib.mapAttrs mkLicense (
     };
 
     tekHvcLicense = {
+      spdxId = "TekHVC";
       fullName = "TekHVC License";
-      url = "https://gitlab.freedesktop.org/xorg/lib/libx11/-/blob/7f8305c779ac6948d7261764f5ffb8ae9aa975b1/COPYING#L138-171";
-      # TODO: add spdxId when it gets accepted to spdx
-      # https://tools.spdx.org/app/license_requests/458
-      # https://github.com/spdx/license-list-XML/issues/2757
     };
 
     torque11 = {
@@ -1465,7 +1468,7 @@ lib.mapAttrs mkLicense (
 
     tsl = {
       shortName = "TSL";
-      fullName = "Timescale License Agreegment";
+      fullName = "Timescale License Agreement";
       url = "https://github.com/timescale/timescaledb/blob/main/tsl/LICENSE-TIMESCALE";
       free = false;
     };
@@ -1476,8 +1479,8 @@ lib.mapAttrs mkLicense (
     };
 
     tost = {
+      spdxId = "Pixar";
       fullName = "Tomorrow Open Source Technology License 1.0";
-      url = "https://github.com/PixarAnimationStudios/OpenUSD/blob/release/LICENSE.txt";
     };
 
     ubdlException = {
@@ -1533,6 +1536,11 @@ lib.mapAttrs mkLicense (
       fullName = "Unicode Terms of Use";
     };
 
+    universalFOSSException-10 = {
+      spdxId = "Universal-FOSS-exception-1.0";
+      fullName = "Universal FOSS Exception, Version 1.0";
+    };
+
     unlicense = {
       spdxId = "Unlicense";
       fullName = "The Unlicense";
@@ -1583,6 +1591,11 @@ lib.mapAttrs mkLicense (
       fullName = "W3C Software Notice and License";
     };
 
+    w3c-19980720 = {
+      spdxId = "W3C-19980720";
+      fullName = "W3C Software Notice and License (1998-07-20)";
+    };
+
     wadalab = {
       fullName = "Wadalab Font License";
       url = "https://fedoraproject.org/wiki/Licensing:Wadalab?rd=Licensing/Wadalab";
@@ -1601,6 +1614,11 @@ lib.mapAttrs mkLicense (
     x11 = {
       spdxId = "X11";
       fullName = "X11 License";
+    };
+
+    x11BsdClause = {
+      fullName = "X11 License with third BSD clause";
+      url = "https://gitlab.freedesktop.org/xorg/driver/xf86-video-geode/-/blob/d147c3f1b6907ae9db6f12853cedd450537d99d2/COPYING";
     };
 
     x11NoPermitPersons = {
@@ -1685,37 +1703,3 @@ lib.mapAttrs mkLicense (
     };
   }
 )
-// {
-  inherit
-    evaluateProperty
-    evaluateNamedProperty
-    isFree
-    isRedistributable
-    containsLicenses
-    toSPDX
-    ;
-
-  OR = licenses: {
-    licenseType = "compound";
-    operator = "OR";
-    inherit licenses;
-  };
-
-  AND = licenses: {
-    licenseType = "compound";
-    operator = "AND";
-    inherit licenses;
-  };
-
-  WITH = license: exception: {
-    licenseType = "exception";
-    operator = "WITH";
-    inherit license exception;
-  };
-
-  PLUS = license: {
-    licenseType = "plus";
-    operator = "+";
-    inherit license;
-  };
-}

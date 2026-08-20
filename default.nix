@@ -72,8 +72,9 @@ let
       types = callLibs ./types.nix;
 
       # constants
-      licenses = callLibs ./licenses.nix;
+      licenses = callLibs ./licenses;
       sourceTypes = callLibs ./source-types.nix;
+      systems = callLibs ./systems;
 
       # serialization
       cli = callLibs ./cli.nix;
@@ -94,6 +95,9 @@ let
       fileset = callLibs ./fileset;
       sources = callLibs ./sources.nix;
 
+      # back-compat aliases
+      platforms = self.systems.doubles;
+
       # linux kernel configuration
       kernel = callLibs ./kernel.nix;
 
@@ -103,22 +107,33 @@ let
       # fleet service contracts
       fleet = callLibs ./fleet;
 
-      # TODO: For consistency, all builtins should also be available from a sub-library;
-      # these are the only ones that are currently not
+      # flakes
+      flakes = callLibs ./flakes.nix;
+
       inherit (builtins)
-        addErrorContext
-        isPath
-        trace
-        typeOf
-        unsafeGetAttrPos
+        getContext
+        hasContext
+        convertHash
+        hashString
+        parseDrvName
+        placeholder
+        fromJSON
+        fromTOML
+        toFile
+        toJSON
+        toString
+        toXML
+        tryEval
         ;
       inherit (self.trivial)
         id
         const
         pipe
         concat
-        or
+        "or"
         and
+        mul
+        div
         xor
         bitAnd
         bitOr
@@ -145,6 +160,7 @@ let
         info
         showWarnings
         nixpkgsVersion
+        version
         isInOldestRelease
         oldestSupportedReleaseIsAtLeast
         mod
@@ -169,6 +185,8 @@ let
         pathExists
         genericClosure
         readFile
+        ceil
+        floor
         ;
       inherit (self.fixedPoints)
         fix
@@ -302,8 +320,8 @@ let
         elemAt
         isList
         concatAttrValues
+        replaceElemAt
         ;
-
       inherit (self.strings)
         concatStrings
         concatMapStrings
@@ -344,13 +362,13 @@ let
         escapeRegex
         escapeURL
         escapeXML
-        replaceChars
         lowerChars
         upperChars
         toLower
         toUpper
         toCamelCase
         toSentenceCase
+        typeOf
         addContextFrom
         splitString
         splitStringBy
@@ -377,8 +395,9 @@ let
         fixedWidthNumber
         toInt
         toIntBase10
-        readPathsFromFile
         fileContents
+        appendContext
+        unsafeDiscardStringContext
         ;
       inherit (self.stringsWithDeps)
         textClosureList
@@ -391,7 +410,6 @@ let
       inherit (self.customisation)
         overrideDerivation
         makeOverridable
-        callFromScopeWith
         callPackageWith
         callPackagesWith
         extendDerivation
@@ -404,7 +422,13 @@ let
         renameCrossIndexTo
         mapCrossIndex
         ;
-      inherit (self.derivations) lazyDerivation optionalDrvAttr warnOnInstantiate;
+      inherit (self.derivations)
+        lazyDerivation
+        optionalDrvAttr
+        warnOnInstantiate
+        addDrvOutputDependencies
+        unsafeDiscardOutputDependency
+        ;
       inherit (self.generators) mkLuaInline;
       inherit (self.meta)
         addMetaAttrs
@@ -428,14 +452,19 @@ let
         pathType
         pathIsDirectory
         pathIsRegularFile
+        baseNameOf
+        dirOf
+        isPath
         packagesFromDirectoryRecursive
+        hashFile
+        readDir
+        readFileType
         ;
       inherit (self.sources)
         cleanSourceFilter
         cleanSource
         sourceByRegex
         sourceFilesBySuffices
-        sourceByGlobs
         commitIdFromGitRepo
         cleanSourceWith
         pathHasContext
@@ -443,6 +472,7 @@ let
         pathIsGitRepo
         revOrTag
         repoRevToName
+        filterSource
         ;
       inherit (self.modules)
         evalModules
@@ -470,7 +500,6 @@ let
         mkVMOverride
         mkFixStrictness
         mkOrder
-        mapDefinitionValue
         mkBefore
         mkAfter
         mkAliasDefinitions
@@ -501,7 +530,6 @@ let
         optionAttrSetToDocList'
         scrubOptionValue
         literalExpression
-        literalExample
         showOption
         showOptionWithDefLocs
         showFiles
@@ -523,6 +551,7 @@ let
         assertOneOf
         ;
       inherit (self.debug)
+        trace
         traceIf
         traceVal
         traceValFn
@@ -533,6 +562,8 @@ let
         traceValSeqN
         traceValSeqNFn
         traceFnSeqN
+        addErrorContext
+        unsafeGetAttrPos
         runTests
         testAllTrue
         ;
@@ -572,10 +603,15 @@ let
         imap
         ;
       inherit (self.versions)
+        compareVersions
         splitVersion
         ;
       inherit (self.network.ipv6)
         mkEUI64Suffix
+        ;
+      inherit (self.flakes)
+        parseFlakeRef
+        flakeRefToString
         ;
     }
   );

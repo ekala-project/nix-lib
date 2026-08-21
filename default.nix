@@ -410,6 +410,7 @@ let
       inherit (self.customisation)
         overrideDerivation
         makeOverridable
+        callFromScopeWith
         callPackageWith
         callPackagesWith
         extendDerivation

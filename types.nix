@@ -526,6 +526,13 @@ let
           };
         };
 
+      overlay = lib.mkOptionType {
+        name = "overlay";
+        description = "overlay";
+        check = lib.isFunction;
+        merge = lib.mergeOneOption;
+      };
+
       str = mkOptionType {
         name = "str";
         description = "string";

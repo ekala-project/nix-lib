@@ -118,6 +118,7 @@ let
     types
     uniqueStrings
     updateManyAttrsByPath
+    versions
     xor
     ;
 
@@ -4606,6 +4607,7 @@ runTests {
           (
             name: value:
               !lib.elem name [
+                "callFromScope"
                 "callPackage"
                 "newScope"
                 "overrideScope"

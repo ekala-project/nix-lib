@@ -402,6 +402,23 @@ in
     ;
 
   /**
+    Whether a deprecation introduced in `release` has outlived every
+    supported release, so its warning should take effect.
+
+    nixpkgs answers this from its release schedule. nix-lib has no release
+    branches (see README.md), so there is no older release to stay quiet for
+    and every gate is open. Functions synced from nixpkgs keep calling this
+    unchanged.
+
+    # Inputs
+
+    `release`
+
+    : Release number of feature introduction as an integer, e.g. 2111 for 21.11.
+  */
+  oldestSupportedReleaseIsAtLeast = _release: true;
+
+  /**
     Determine whether the function is being called from inside a Nix
     shell.
 

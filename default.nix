@@ -159,9 +159,6 @@ let
         checkListOfEnum
         info
         showWarnings
-        nixpkgsVersion
-        version
-        isInOldestRelease
         oldestSupportedReleaseIsAtLeast
         mod
         compare

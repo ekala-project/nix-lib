@@ -399,6 +399,10 @@ in
     bitAnd
     bitOr
     bitXor
+    mul
+    div
+    ceil
+    floor
     ;
 
   /**

@@ -2056,4 +2056,42 @@ rec {
     :::
   */
   concatAttrValues = set: concatLists (attrValues set);
+
+  /**
+    Replaces a list's nth element with a new element
+
+    # Inputs
+
+    `list`
+    : Input list
+
+    `idx`
+    : index to replace
+
+    `newElem`
+    : new element to replace with
+
+    # Type
+
+    ```
+    replaceElemAt :: [a] -> Int -> a -> [a]
+    ```
+
+    # Examples
+    :::{.example}
+    ## `replaceElemAt` usage example
+
+    ```nix
+    lib.replaceElemAt [1 2 3] 0 "a"
+    => ["a" 2 3]
+    ```
+
+    :::
+  */
+  replaceElemAt =
+    list: idx: newElem:
+    assert
+      idx >= 0 && idx < length list
+      || throw "'lists.replaceElemAt' called with index ${toString idx} on a list of size ${toString (length list)}";
+    genList (i: if i == idx then newElem else elemAt list i) (length list);
 }

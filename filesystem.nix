@@ -67,7 +67,25 @@ in
 
     :::
   */
-  pathType = builtins.readFileType;
+  pathType =
+    builtins.readFileType or
+    # Nix <2.14 compatibility shim; minver.nix still promises Nix 2.3
+    (
+      path:
+      if
+        !pathExists path
+      # Fail irrecoverably to mimic the historic behavior of this function and
+      # the new builtins.readFileType
+      then
+        abort "lib.filesystem.pathType: Path ${toString path} does not exist."
+      # The filesystem root is the only path where `dirOf / == /` and
+      # `baseNameOf /` is not valid. We can detect this and directly return
+      # "directory", since we know the filesystem root can't be anything else.
+      else if dirOf path == path then
+        "directory"
+      else
+        (readDir (dirOf path)).${baseNameOf path}
+    );
 
   /**
     Whether a path exists and is a directory.
